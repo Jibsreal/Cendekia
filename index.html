@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Latihan Soal PAI 100 - Paradisa Cendekia (Dengan Skor)</title>
+<meta name="description" content="Latihan soal PAI 100 soal interaktif untuk tingkat SMA - Paradisa Cendekia">
+<style>
+  :root{
+    --bg:#f6f8ff; --card:#ffffff; --muted:#52606d; --accent:#2b6ef6; --ok:#0ea55f; --err:#d64545;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:#0b1220}
+  header{background:linear-gradient(90deg,var(--accent),#7c3aed);color:white;padding:18px 16px}
+  header h1{margin:0;font-size:1.15rem}
+  .container{max-width:1100px;margin:18px auto;padding:16px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+  .btn{background:#fff;border:1px solid rgba(11,18,32,0.06);padding:8px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .btn:hover{background:#f3f6ff}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),#7c3aed);color:#fff;border:none}
+  .btn.primary:hover{opacity:.9}
+  .search{flex:1;display:flex;align-items:center;background:#fff;padding:8px;border-radius:10px;border:1px solid rgba(11,18,32,0.06)}
+  .search input{border:0;outline:none;width:100%;font-size:0.95rem;background:transparent}
+  .layout{display:grid;grid-template-columns:1fr 300px;gap:16px}
+  .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 8px 20px rgba(15,23,42,0.06)}
+  .questions{display:flex;flex-direction:column;gap:12px}
+  .q{padding:14px;border-radius:10px;border:1px solid rgba(15,23,42,0.04);background:linear-gradient(180deg,#fff,#fbfdff)}
+  .q h3{margin:0 0 8px;font-size:1rem}
+  .choices label{display:block;padding:8px;margin:6px 0;border-radius:8px;background:#f3f6ff;cursor:pointer;border:1px solid rgba(15,23,42,0.03);transition:.15s}
+  .choices label:hover{background:#eaf0ff}
+  .choices input{margin-right:8px}
+  .feedback{margin-top:10px;padding:12px;border-radius:8px;display:none}
+  .feedback.ok{background:rgba(14,165,95,0.08);border-left:4px solid var(--ok);color:var(--ok)}
+  .feedback.err{background:rgba(214,69,69,0.07);border-left:4px solid var(--err);color:var(--err)}
+  .small{color:var(--muted);font-size:0.9rem}
+  aside .topic{padding:10px;border-radius:8px;background:#fafbff;border:1px solid rgba(11,18,32,0.03);cursor:pointer;margin-bottom:8px;transition:.15s}
+  aside .topic:hover{background:#f0f4ff}
+  aside .topic.active{background:linear-gradient(90deg,var(--accent),#7c3aed);color:#fff;border-color:transparent}
+  footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
+  .scorebox{display:inline-block;padding:8px 12px;border-radius:10px;background:#fff;border:1px solid rgba(11,18,32,0.06)}
+  @media(max-width:980px){.layout{grid-template-columns:1fr}.sidebar{order:2}}
+  @media print{header,footer,.toolbar,aside{display:none}.layout{grid-template-columns:1fr}.panel{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Latihan Soal PAI 100 — Paradisa Cendekia</h1>
+    <div class="small">Interaktif: pilih jawaban lalu lihat pembahasan. Tombol <strong>Hitung Skor</strong> akan menghitung jawaban pada soal yang tampil (filter/search ikut dihitung).</div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="toolbar">
+    <div class="search" role="search" aria-label="Cari soal">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-right:8px"><path d="M21 21l-4.35-4.35" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="11" cy="11" r="6" stroke="#94a3b8" stroke-width="2"/></svg>
+      <input id="qSearch" placeholder="Cari nomor, kata kunci, atau topik (mis. zakat, shalat)">
+    </div>
+    <button class="btn" id="expandAll">Buka semua</button>
+    <button class="btn" id="collapseAll">Tutup semua</button>
+    <button class="btn" id="resetAll">Reset Jawaban</button>
+    <button class="btn primary" id="scoreBtn">Hitung Skor</button>
+    <div id="scoreDisplay" class="scorebox" style="margin-left:auto">Belum dihitung</div>
+    <button class="btn" id="printBtn">Cetak / Simpan PDF</button>
+  </div>
+
+  <div class="layout">
+    <main class="panel">
+      <div id="questionsStatus" class="small" style="margin-bottom:10px;color:var(--muted)">Memuat soal...</div>
+      <div class="questions" id="questions"></div>
+    </main>
+
+    <aside class="panel sidebar">
+      <h3 style="margin-top:0">Petunjuk</h3>
+      <p class="small">Pilih salah satu jawaban untuk melihat apakah jawabanmu benar atau salah. Gunakan tombol <strong>Hitung Skor</strong> untuk menghitung jumlah jawaban benar pada soal yang sedang tampil (setelah filter/search).</p>
+      <h4 style="margin-top:12px">Topik cepat</h4>
+      <div class="topic" data-filter="akidah">Akidah & Keimanan</div>
+      <div class="topic" data-filter="ibadah">Ibadah</div>
+      <div class="topic" data-filter="akhlak">Akhlak & Etika</div>
+      <div class="topic" data-filter="muamalah">Muamalah</div>
+      <div class="topic" data-filter="sejarah">Sejarah & Nabi</div>
+      <div class="topic" data-filter="adab">Adab & Sopan Santun</div>
+      <h4 style="margin-top:12px">Info</h4>
+      <p class="small">Total soal: <strong id="totalSoal">0</strong></p>
+    </aside>
+  </div>
+
+  <footer>Disusun untuk latihan masuk Paradisa Cendekia — bersifat edukatif</footer>
+</div>
+
+<script>
+// ===== DATA: 100 soal lengkap dengan standardisasi topik =====
+const questions = [
+{"id":1,"topic":"akidah","question":"Rukun iman yang menjadi dasar keyakinan tentang adanya hari pembalasan adalah…","choices":["A. Iman kepada malaikat","B. Iman kepada hari akhir","C. Iman kepada rasul","D. Iman kepada takdir"],"answer":"B","discussion":"Keyakinan bahwa semua amal manusia akan dibalas termasuk dalam iman kepada hari akhir. Ini mendorong tanggung jawab moral."},
+{"id":2,"topic":"akidah","question":"Al-Qur'an diturunkan sebagai petunjuk bagi…","choices":["A. Orang kaya","B. Sekelompok orang","C. Seluruh umat manusia","D. Hanya orang Arab"],"answer":"C","discussion":"Al-Qur'an adalah petunjung universal untuk seluruh manusia tanpa kecuali."},
+{"id":3,"topic":"akidah","question":"Malaikat yang bertugas mencabut nyawa adalah…","choices":["A. Jibril","B. Mikail","C. Azrael","D. Israfil"],"answer":"C","discussion":"Azrael adalah malaikat pencabut nyawa yang ditugaskan oleh Allah."},
+{"id":4,"topic":"ibadah","question":"Rukun shalat yang pertama adalah…","choices":["A. Takbiratul ihram","B. Bacaan Al-Fatihah","C. Rukuk","D. Sujud"],"answer":"A","discussion":"Takbiratul ihram adalah rukun pertama dan pembuka shalat."},
+{"id":5,"topic":"akhlak","question":"Sifat ikhlas dalam beramal adalah…","choices":["A. Beramal karena takut","B. Beramal karena Allah semata","C. Beramal untuk pamer","D. Beramal karena terpaksa"],"answer":"B","discussion":"Ikhlas adalah niat murni karena Allah tanpa mengharap pujian atau balasan manusia."},
+{"id":6,"topic":"ibadah","question":"Wajibnya puasa Ramadan ditentukan oleh…","choices":["A. Budaya masyarakat","B. Ijtihad ulama","C. Ayat Al-Qur'an","D. Tradisi Arab"],"answer":"C","discussion":"Wajibnya puasa ditentukan oleh ayat Al-Qur'an surah Al-Baqarah ayat 183-185."},
+{"id":7,"topic":"sejarah","question":"Nabi Ibrahim dikenal sebagai bapak para…","choices":["A. Nabi","B. Pendeta","C. Raja","D. Ulama"],"answer":"A","discussion":"Nabi Ibrahim disebut bapak para nabi karena banyak nabi keturunannya."},
+{"id":8,"topic":"muamalah","question":"Dalam ekonomi Islam, riba dilarang karena…","choices":["A. Merugikan pihak kaya","B. Menghilangkan keuntungan","C. Menindas dan merusak ekonomi","D. Tidak menguntungkan"],"answer":"C","discussion":"Riba menimbulkan penindasan dan ketimpangan ekonomi yang merugikan masyarakat."},
+{"id":9,"topic":"akidah","question":"Kitab suci yang diturunkan kepada Nabi Musa adalah…","choices":["A. Injil","B. Taurat","C. Zabur","D. Al-Qur'an"],"answer":"B","discussion":"Taurat adalah kitab suci yang diturunkan kepada Nabi Musa AS."},
+{"id":10,"topic":"akhlak","question":"Sifat riya dalam beramal adalah…","choices":["A. Beramal untuk Allah","B. Beramal agar dilihat orang","C. Beramal tulus","D. Beramal dengan sabar"],"answer":"B","discussion":"Riya adalah beramal agar dilihat dan dipuji orang lain, merusak ibadah."},
+{"id":11,"topic":"akhlak","question":"Menjaga hubungan baik dengan tetangga hukumnya…","choices":["A. Sunnah","B. Wajib","C. Mubah","D. Makruh"],"answer":"B","discussion":"Menjaga hubungan baik dengan tetangga adalah kewajiban setiap Muslim."},
+{"id":12,"topic":"ibadah","question":"Nisab zakat emas adalah…","choices":["A. 20 dinar","B. 85 gram emas","C. 100 gram emas","D. 200 gram emas"],"answer":"B","discussion":"Nisab zakat emas adalah 85 gram emas yang telah dizakati oleh ulama."},
+{"id":13,"topic":"akidah","question":"Orang yang beriman kepada hari akhir akan…","choices":["A. Berbuat semena-mena","B. Berperilaku amanah","C. Merusak alam","D. Berbuat curang"],"answer":"B","discussion":"Iman kepada hari akhir mendorong seseorang berperilaku amanah dan bertanggung jawab."},
+{"id":14,"topic":"sejarah","question":"Sahabat yang pertama kali memeluk Islam adalah…","choices":["A. Abu Bakar","B. Umar","C. Ali","D. Hamzah"],"answer":"A","discussion":"Abu Bakar adalah sahabat pertama yang memeluk Islam setelah Khadijah."},
+{"id":15,"topic":"muamalah","question":"Dalam jual beli, sikap tenggang rasa dan tidak menipu disebut…","choices":["A. Rugi","B. Riba","C. Adil","D. Munafik"],"answer":"C","discussion":"Jual beli harus dilakukan dengan adil dan tidak menipu pihak lain."},
+{"id":16,"topic":"akidah","question":"Takdir yang bisa berubah melalui doa dan ikhtiar disebut…","choices":["A. Takdir mubram","B. Takdir muallaq","C. Takdir ketetapan","D. Takdir ilahi"],"answer":"B","discussion":"Takdir muallaq bisa berubah melalui doa, ikhtiar, dan usaha manusia."},
+{"id":17,"topic":"akhlak","question":"Sabar dalam menghadapi musibah akan mendapatkan…","choices":["A. Balasan duniawi","B. Pahala dari Allah","C. Kemarahan Allah","D. Penyesalan"],"answer":"B","discussion":"Sabar menghadapi musibah akan mendapatkan pahala yang besar dari Allah."},
+{"id":18,"topic":"akhlak","question":"Syukur adalah sikap…","choices":["A. Mengeluh","B. Menyalahkan nasib","C. Mengakui nikmat Allah","D. Lupa diri"],"answer":"C","discussion":"Syukur adalah mengakui dan mensyukuri nikmat yang diberikan Allah."},
+{"id":19,"topic":"ibadah","question":"Ibadah haji wajib dilakukan sekali seumur hidup bagi yang…","choices":["A. Mampu","B. Sudah tua","C. Sudah pensiun","D. Sudah menikah"],"answer":"A","discussion":"Haji wajib sekali seumur hidup bagi yang mampu secara fisik dan finansial."},
+{"id":20,"topic":"sejarah","question":"Perang Badar terjadi pada tahun…","choices":["A. 1 H","B. 2 H","C. 3 H","D. 4 H"],"answer":"B","discussion":"Perang Badar terjadi pada tahun 2 Hira, menjadi perang pertama dalam sejarah Islam."},
+{"id":21,"topic":"akidah","question":"Allah memiliki sifat Maha Mendengar yang disebut…","choices":["A. Al-Basir","B. As-Sami'","C. Al-Quddus","D. Al-Mu'min"],"answer":"B","discussion":"As-Sami' adalah sifat Allah yang Maha Mendengar segala sesuatu."},
+{"id":22,"topic":"ibadah","question":"Salat sunnah rawatib sebelum zuhur berjumlah…","choices":["A. 2 rakaat","B. 4 rakaat","C. 6 rakaat","D. 8 rakaat"],"answer":"B","discussion":"Salat sunnah rawatib sebelum zuhur adalah 4 rakaat (2+2) menurut hadits."},
+{"id":23,"topic":"akhlak","question":"Sifat tawaduk dalam diri manusia adalah…","choices":["A. Sombong","B. Rendah hati","C. Marah","D. Bongkak"],"answer":"B","discussion":"Tawaduk adalah sifat rendah hati yang sangat disukai oleh Allah."},
+{"id":24,"topic":"muamalah","question":"Hutang yang tidak dibayar akan menjadi…","choices":["A. Amal shalih","B. Dosa besar","C. Pahala","D. Kebaikan"],"answer":"B","discussion":"Hutang yang tidak dibayar dapat menjadi dosa besar dan merusak kepercayaan."},
+{"id":25,"topic":"sejarah","question":"Hijrah Nabi Muhammad dari Mekkah ke Madinah terjadi pada tahun…","choices":["A. 620 M","B. 622 M","C. 624 M","D. 626 M"],"answer":"B","discussion":"Hijrah terjadi pada tahun 622 M yang menjadi awal kalender Hijriyah."},
+{"id":26,"topic":"akidah","question":"Sifat wajib Rasul yang berarti amanah adalah…","choices":["A. Siddiq","B. Tabligh","C. Amanah","D. Fathanah"],"answer":"C","discussion":"Amanah berarti Rasul menyampaikan wahyu dengan penuh kepercayaan."},
+{"id":27,"topic":"akhlak","question":"Jujur dalam perkataan dan perbuatan disebut juga…","choices":["A. Munafik","B. Siddiq","C. Fasik","D. Kafir"],"answer":"B","discussion":"Siddiq adalah sifat jujur yang merupakan sifat wajib Rasul."},
+{"id":28,"topic":"ibadah","question":"Doa yang paling baik adalah…","choices":["A. Doa di dalam hati","B. Doa dengan hati khusyuk","C. Doa keras-keras","D. Doa tanpa niat"],"answer":"B","discussion":"Doa yang paling baik adalah doa yang dilakukan dengan hati khusyuk dan tunduk."},
+{"id":29,"topic":"muamalah","question":"Warisan dalam Islam dibagi menurut…","choices":["A. Kegiatan sehari-hari","B. Hukum adat","C. Ketentuan Al-Qur'an","D. Keinginan keluarga"],"answer":"C","discussion":"Pembagian waris menurut ketentuan Al-Qur'an dan hadits yang tegas."},
+{"id":30,"topic":"akhlak","question":"Menahan marah adalah sikap…","choices":["A. Pengecut","B. Lemah","C. Kuat","D. Bodoh"],"answer":"C","discussion":"Menahan marah adalah sikap orang yang kuat menurut sabda Nabi."},
+{"id":31,"topic":"akidah","question":"Jumlah rukun iman dalam Islam adalah…","choices":["A. 3","B. 5","C. 6","D. 7"],"answer":"C","discussion":"Rukun iman terdiri dari 6: iman kepada Allah, malaikat, kitab, rasul, hari akhir, dan takdir."},
+{"id":32,"topic":"ibadah","question":"Waktu salat ashar dimulai ketika bayangan benda…","choices":["A. Tegak lurus","B. Sama panjang dengan benda","C. 2 kali panjang benda","D. Tidak ada bayangan"],"answer":"B","discussion":"Ashar dimulai ketika bayangan benda sama panjang dengan benda itu sendiri."},
+{"id":33,"topic":"akhlak","question":"Yang termasuk perilaku taat kepada Allah adalah…","choices":["A. Beribadah sambil mengeluh","B. Menjalankan perintah dengan ikhlas","C. Melakukan dosa lalu tertawa","D. Menunda salat dengan sengaja"],"answer":"B","discussion":"Ibadah yang dilakukan dengan hati tunduk mencerminkan ketaatan sejati."},
+{"id":34,"topic":"akhlak","question":"Mengerjakan ibadah karena ingin dipuji orang disebut…","choices":["A. Ikhlas","B. Riya","C. Taqwa","D. Tawakal"],"answer":"B","discussion":"Riya merusak pahala karena niat bukan untuk Allah."},
+{"id":35,"topic":"ibadah","question":"Haji wajib bagi yang…","choices":["A. Masih kecil","B. Mampu secara fisik dan finansial","C. Tidak punya pekerjaan","D. Tinggal dekat Mekah"],"answer":"B","discussion":"Istitha'ah (kemampuan) adalah syarat wajib menunaikan haji."},
+{"id":36,"topic":"akhlak","question":"Hukum menuntut ilmu umum seperti sains adalah…","choices":["A. Haram","B. Makruh","C. Mubah","D. Wajib jika bermanfaat"],"answer":"D","discussion":"Ilmu yang membawa manfaat bagi umat hukumnya wajib secara kolektif (kifayah)."},
+{"id":37,"topic":"akidah","question":"Fungsi akal dalam agama adalah…","choices":["A. Menolak wahyu","B. Membantu memahami wahyu","C. Menggantikan wahyu","D. Memutus hubungan dengan agama"],"answer":"B","discussion":"Akal adalah alat untuk memahami dan menerapkan wahyu, bukan menggantikannya."},
+{"id":38,"topic":"muamalah","question":"Menghindari makanan haram membawa dampak…","choices":["A. Jiwa tenang","B. Rezeki berkah","C. Hati bersih","D. Benar semua"],"answer":"D","discussion":"Makanan yang halal dan thayyib memberi manfaat spiritual dan sosial."},
+{"id":39,"topic":"ibadah","question":"Yang membatalkan wudu adalah…","choices":["A. Tidur nyenyak","B. Menangis","C. Mandi","D. Tersenyum"],"answer":"A","discussion":"Tidur lelap dapat membatalkan wudu karena hilangnya kontrol anggota tubuh."},
+{"id":40,"topic":"akhlak","question":"Sikap moderat dalam Islam disebut…","choices":["A. Ghulu","B. Wasathiyah","C. Launiyah","D. Ifrit"],"answer":"B","discussion":"Wasathiyah mengajarkan keseimbangan antara prinsip dan konteks."},
+{"id":41,"topic":"akhlak","question":"Menghormati non-Muslim dalam pergaulan termasuk…","choices":["A. Larangan","B. Akhlak baik","C. Syirik","D. Dosa"],"answer":"B","discussion":"Islam mengajarkan keadilan dan kebaikan kepada semua manusia."},
+{"id":42,"topic":"sejarah","question":"Dasar keimanan Nabi Muhammad adalah…","choices":["A. Wahyu","B. Pendapat masyarakat Mekah","C. Budaya","D. Tradisi keluarga"],"answer":"A","discussion":"Segala risalah Nabi diambil dari wahyu Allah."},
+{"id":43,"topic":"akidah","question":"Sifat wajib Allah yang berarti \"berbeda dengan makhluk\" adalah…","choices":["A. Qidam","B. Qiyamuhu binafsihi","C. Mukhalafatu lil hawadits","D. Hayat"],"answer":"C","discussion":"Allah berbeda dan tidak serupa dengan makhluk (mukhalafatu lil-hawadits)."},
+{"id":44,"topic":"muamalah","question":"Contoh musyawarah dalam sekolah adalah…","choices":["A. Membuat keputusan sendiri","B. Menentukan ketua kelas bersama","C. Memaksa pendapat pribadi","D. Mengabaikan teman"],"answer":"B","discussion":"Musyawarah melatih demokrasi dan tanggung jawab bersama."},
+{"id":45,"topic":"sejarah","question":"Rasul yang mendapat gelar Khalilullah adalah…","choices":["A. Isa","B. Musa","C. Ibrahim","D. Nuh"],"answer":"C","discussion":"Ibrahim dikenal sebagai kekasih Allah (khalilullah)."},
+{"id":46,"topic":"muamalah","question":"Dalam Islam, menuntut nafkah keluarga adalah…","choices":["A. Hobi","B. Sunnah","C. Wajib","D. Boleh jika mau"],"answer":"C","discussion":"Memberi nafkah adalah tanggung jawab kepala keluarga menurut Islam."},
+{"id":47,"topic":"akhlak","question":"Hikmah bersyukur adalah…","choices":["A. Rezeki bertambah","B. Hati tenang","C. Menjadi rendah hati","D. Semuanya benar"],"answer":"D","discussion":"Syukur membuka pintu nikmat dan ketenangan batin."},
+{"id":48,"topic":"sejarah","question":"Arti ulul azmi adalah…","choices":["A. Nabi pilihan","B. Nabi yang banyak harta","C. Nabi yang pemberani","D. Nabi yang memiliki keteguhan luar biasa"],"answer":"D","discussion":"Ulul azmi adalah nabi dengan keteguhan, mis. Nuh, Ibrahim, Musa, Isa, Muhammad."},
+{"id":49,"topic":"akhlak","question":"Perilaku adil berarti…","choices":["A. Mengutamakan teman dekat","B. Membedakan orang kaya dan miskin","C. Menempatkan sesuatu pada tempatnya","D. Mengikuti hawa nafsu"],"answer":"C","discussion":"Adil menempatkan hak pada tempatnya dan tidak memihak secara tidak adil."},
+{"id":50,"topic":"akhlak","question":"Berbicara sopan termasuk bagian dari…","choices":["A. Akhlak lisan","B. Akhlak hati","C. Akhlak makan","D. Akhlak tidur"],"answer":"A","discussion":"Menjaga lisan mencegah dosa seperti ghibah dan fitnah."},
+{"id":51,"topic":"akidah","question":"Pengertian takdir muallaq adalah…","choices":["A. Takdir yang tidak bisa berubah","B. Takdir yang bisa berubah dengan usaha dan doa","C. Takdir khusus malaikat","D. Takdir bagi nabi"],"answer":"B","discussion":"Beberapa takdir dapat berubah karena usaha, doa, dan ikhtiar."},
+{"id":52,"topic":"ibadah","question":"Puasa sunnah yang paling utama adalah…","choices":["A. Senin-Kamis","B. Puasa mutih","C. Puasa merapi","D. Puasa tanpa sahur"],"answer":"A","discussion":"Senin-Kamis dianjurkan karena amal diangkat pada hari tersebut."},
+{"id":53,"topic":"akhlak","question":"Hukum menepati janji adalah…","choices":["A. Mubah","B. Makruh","C. Wajib","D. Haram"],"answer":"C","discussion":"Janji merupakan amanah yang harus dijaga."},
+{"id":54,"topic":"muamalah","question":"Membeli barang curian hukumnya…","choices":["A. Mubah","B. Sunnah","C. Haram","D. Wajib"],"answer":"C","discussion":"Mendukung kejahatan dan mengambil hak orang lain adalah haram."},
+{"id":55,"topic":"akhlak","question":"Larangan minuman keras karena…","choices":["A. Rasanya pahit","B. Menghilangkan akal","C. Mahal","D. Tradisi kuno"],"answer":"B","discussion":"Menjaga akal adalah tujuan syariah sehingga yang merusak akal dilarang."},
+{"id":56,"topic":"akhlak","question":"Zina dilarang karena…","choices":["A. Merusak keluarga","B. Menyebarkan penyakit","C. Menghilangkan kehormatan","D. Semua benar"],"answer":"D","discussion":"Zina merusak tatanan sosial dan martabat individu."},
+{"id":57,"topic":"akidah","question":"Arti “Allah itu Al-Adl” adalah…","choices":["A. Maha Pemberi","B. Maha Adil","C. Maha Penolong","D. Maha Lembut"],"answer":"B","discussion":"Allah berlaku adil dalam segala ketetapan-Nya."},
+{"id":58,"topic":"sejarah","question":"Rasul yang dijuluki Ruhullah adalah…","choices":["A. Isa","B. Nuh","C. Ibrahim","D. Yusuf"],"answer":"A","discussion":"Isa (Yesus) sering disebut Ruhullah dalam teks suci."},
+{"id":59,"topic":"akhlak","question":"Tanda-tanda orang beriman adalah…","choices":["A. Malas ibadah","B. Penuh prasangka","C. Sabar dan jujur","D. Suka marah"],"answer":"C","discussion":"Iman tercermin dalam akhlak seperti sabar dan kejujuran."},
+{"id":60,"topic":"akhlak","question":"Menolong teman yang kesulitan belajar termasuk…","choices":["A. Sedekah ilmu","B. Makruh","C. Haram","D. Mubah"],"answer":"A","discussion":"Berbagi ilmu adalah amal jariyah yang sangat dianjurkan."},
+{"id":61,"topic":"akhlak","question":"Bergaul dengan lawan jenis harus menjaga…","choices":["A. Emosi","B. Pandangan dan adab","C. Harta","D. Makanan"],"answer":"B","discussion":"Menjaga pandangan dan adab mencegah fitnah dan menjaga kehormatan."},
+{"id":62,"topic":"akhlak","question":"Menuduh tanpa bukti disebut…","choices":["A. Fitnah","B. Ghibah","C. Namimah","D. Syirik"],"answer":"A","discussion":"Fitnah merusak nama baik dan berdosa besar."},
+{"id":63,"topic":"sejarah","question":"Surat pertama yang turun adalah…","choices":["A. Al-Fatihah","B. Al-Ikhlas","C. Al-Baqarah","D. Al-Alaq"],"answer":"D","discussion":"Ayat pertama yang diperintahkan dibaca adalah dari surat Al-Alaq."},
+{"id":64,"topic":"ibadah","question":"Membantu orang tua di rumah termasuk…","choices":["A. Budaya","B. Ibadah","C. Kesempatan","D. Hukuman"],"answer":"B","discussion":"Berbakti kepada orang tua adalah perintah agama dan bagian dari ibadah."},
+{"id":65,"topic":"akhlak","question":"Sikap sabar melatih…","choices":["A. Keegoisan","B. Ketahanan hati","C. Kemarahan","D. Kebencian"],"answer":"B","discussion":"Sabar memperkuat ketahanan mental dan spiritual."},
+{"id":66,"topic":"akhlak","question":"Makan berlebihan hukumnya…","choices":["A. Sunnah","B. Makruh","C. Wajib","D. Mubah"],"answer":"B","discussion":"Berlebih-lebihan dalam makan termasuk boros dan tidak dianjurkan."},
+{"id":67,"topic":"akidah","question":"Arti taubat adalah…","choices":["A. Menunda kesalahan","B. Menyesal, berhenti, dan bertekad tidak mengulang","C. Malu pada manusia","D. Merasa bangga"],"answer":"B","discussion":"Taubat sejati melibatkan penyesalan, berhenti berbuat dosa, dan tekad tidak mengulanginya."},
+{"id":68,"topic":"akhlak","question":"Ketika mendengar kabar buruk kita dianjurkan…","choices":["A. Mengumpat","B. Mengadu","C. Mengucap 'Inna lillah...'","D. Menyerah"],"answer":"C","discussion":"Ungkapan tersebut menegaskan percaya bahwa segala sesuatu milik Allah."},
+{"id":69,"topic":"sejarah","question":"Nabi yang fasih berbicara dan mampu berdebat adalah…","choices":["A. Musa","B. Yunus","C. Isa","D. Muhammad"],"answer":"A","discussion":"Musa sering berdebat dengan Fir'aun dengan dalil dan mukjizat."},
+{"id":70,"topic":"akhlak","question":"Membaca basmalah sebelum makan bertujuan…","choices":["A. Agar kenyang","B. Agar makanan berkah","C. Agar cepat selesai","D. Agar banyak"],"answer":"B","discussion":"Basmalah mengingatkan sumber rezeki adalah Allah dan meminta keberkahan."},
+{"id":71,"topic":"akhlak","question":"Jujur disebut juga…","choices":["A. Siddiq","B. Khianat","C. Riya","D. Ghaflah"],"answer":"A","discussion":"Siddiq adalah sifat jujur yang dibanggakan dalam agama."},
+{"id":72,"topic":"ibadah","question":"Menutup aurat bagi laki-laki minimal…","choices":["A. Dada","B. Paha sampai lutut","C. Leher","D. Punggung"],"answer":"B","discussion":"Aurah laki-laki minimal antara pusar dan lutut tergantung madzhab; jawaban umum: paha sampai lutut."},
+{"id":73,"topic":"sejarah","question":"Nabi yang selamat dari api adalah…","choices":["A. Adam","B. Yusuf","C. Ibrahim","D. Harun"],"answer":"C","discussion":"Ibrahim selamat dari api yang dibakar oleh kaumnya atas kehendak Allah."},
+{"id":74,"topic":"ibadah","question":"Salat yang tidak memiliki azan adalah…","choices":["A. Zuhur","B. Jumat","C. Hari Raya","D. Magrib"],"answer":"C","discussion":"Salat hari raya tidak didahului azan; ada takbir dan khutbah setelah salat."},
+{"id":75,"topic":"akidah","question":"Mujizat Nabi Musa adalah…","choices":["A. Membelah laut","B. Menghidupkan burung","C. Menurunkan hujan","D. Menyembuhkan penyakit"],"answer":"A","discussion":"Musa membelah laut sebagai tanda kekuasaan Allah ketika melarikan Bani Israil."},
+{"id":76,"topic":"akhlak","question":"Hukum menjaga kebersihan adalah…","choices":["A. Sunnah","B. Wajib","C. Haram","D. Boleh saja"],"answer":"B","discussion":"Kebersihan termasuk bagian dari iman (al-nazafah min al-iman)."},
+{"id":77,"topic":"akhlak","question":"Orang yang sengaja merusak barang orang lain berdosa karena…","choices":["A. Menghibur diri","B. Zalim","C. Sedekah","D. Musyawarah"],"answer":"B","discussion":"Perusakan adalah tindakan zalim yang dilarang agama dan hukum sosial."},
+{"id":78,"topic":"akhlak","question":"Arti ukhuwah adalah…","choices":["A. Persaudaraan","B. Perpecahan","C. Kecurigaan","D. Permusuhan"],"answer":"A","discussion":"Ukhuwah menekankan ikatan persaudaraan di antara umat."},
+{"id":79,"topic":"akhlak","question":"Memberikan salam kepada guru adalah…","choices":["A. Tidak perlu","B. Bagian dari adab","C. Makruh","D. Haram"],"answer":"B","discussion":"Salam menunjukkan sopan santun dan penghormatan."},
+{"id":80,"topic":"ibadah","question":"Sunah Nabi saat minum adalah…","choices":["A. Sambil berdiri","B. Banyak sekali","C. Tiga kali tegukan","D. Tanpa melihat"],"answer":"C","discussion":"Minum tiga tegukan adalah kebiasaan Nabi untuk tidak berlebihan dan tidak tergesa."},
+{"id":81,"topic":"sejarah","question":"Al-Qur’an diturunkan pada bulan…","choices":["A. Muharram","B. Safar","C. Ramadan","D. Rajab"],"answer":"C","discussion":"Penurunan wahyu pertama dan turunnya Al-Qur'an berhubungan erat dengan bulan Ramadan."},
+{"id":82,"topic":"akidah","question":"Akhir dari kehidupan dunia disebut…","choices":["A. Kiamat","B. Qurban","C. Hijrah","D. Isra"],"answer":"A","discussion":"Kiamat adalah akhir kehidupan dunia sebelum pembalasan akhirat."},
+{"id":83,"topic":"akhlak","question":"Termasuk etika berdebat adalah…","choices":["A. Menghina lawan","B. Fokus pada argumen, bukan menyerang pribadi","C. Meninggikan suara","D. Meremehkan"],"answer":"B","discussion":"Etika debat Islami menuntut adab dan argumentasi yang santun."},
+{"id":84,"topic":"muamalah","question":"Mengambil barang yang ditemukan tanpa usaha mencari pemilik disebut…","choices":["A. Wakaf","B. Lari dari tanggung jawab","C. Ghasab","D. Mengabaikan amanah"],"answer":"C","discussion":"Ghasab adalah mengambil hak orang lain secara tidak sah."},
+{"id":85,"topic":"akidah","question":"Arti syukur secara lengkap adalah…","choices":["A. Mengucapkan alhamdulillah saja","B. Menggunakan nikmat pada hal yang benar","C. Merasa cukup sesaat","D. Menyimpan harta"],"answer":"B","discussion":"Syukur mencakup ucapan, hati, dan tindakan yang sesuai."},
+{"id":86,"topic":"akidah","question":"Rukun islam yang kedua adalah…","choices":["A. Syahadat","B. Salat","C. Zakat","D. Puasa"],"answer":"B","discussion":"Rukun Islam urutannya: syahadat, salat, zakat, puasa, haji."},
+{"id":87,"topic":"akidah","question":"Allah Maha Melihat disebut…","choices":["A. Al-Basir","B. As-Sami’","C. Al-Quddus","D. Al-Mu’min"],"answer":"A","discussion":"Al-Basir berarti Maha Melihat segala sesuatu jelas dan teliti."},
+{"id":88,"topic":"akidah","question":"Rukun iman pertama adalah…","choices":["A. Malaikat","B. Allah","C. Rasul","D. Kitab"],"answer":"B","discussion":"Keyakinan kepada Allah sebagai dasar seluruh iman."},
+{"id":89,"topic":"akhlak","question":"Hikmah silaturahmi adalah…","choices":["A. Memperbanyak musuh","B. Memutus hubungan","C. Memperkuat persaudaraan","D. Membuat masalah"],"answer":"C","discussion":"Silaturahmi memperkuat jaringan sosial dan pahala."},
+{"id":90,"topic":"akidah","question":"Allah memberi manusia akal agar…","choices":["A. Menolak kebaikan","B. Memahami perintah-Nya","C. Mengabaikan petunjuk","D. Melakukan segala hal tanpa batas"],"answer":"B","discussion":"Akal digunakan untuk memahami dan mengamalkan petunjuk agama."},
+{"id":91,"topic":"akhlak","question":"Larangan boros disebut…","choices":["A. Syukur","B. Israf","C. Ikhlas","D. Amanah"],"answer":"B","discussion":"Israf adalah berlebihan dalam penggunaan nikmat yang dilarang."},
+{"id":92,"topic":"sejarah","question":"Nabi Yunus diselamatkan dari…","choices":["A. Badai","B. Api","C. Perut ikan","D. Pasukan"],"answer":"C","discussion":"Yunus selamat setelah berdoa dalam perut ikan atas izin Allah."},
+{"id":93,"topic":"akidah","question":"Menjauhi maksiat adalah bentuk…","choices":["A. Takwa","B. Riya","C. Kufur","D. Futur"],"answer":"A","discussion":"Menghindari dosa adalah implementasi takwa."},
+{"id":94,"topic":"sejarah","question":"Rasul yang paling banyak diuji oleh kaumnya adalah…","choices":["A. Isa","B. Musa","C. Muhammad","D. Nuh"],"answer":"D","discussion":"Nuh mengalami cobaan yang panjang dan penolakan dari kaumnya."},
+{"id":95,"topic":"akhlak","question":"Islam melarang bohong karena…","choices":["A. Sulit dilakukan","B. Merusak kepercayaan","C. Tidak menghasilkan uang","D. Tradisi kuno"],"answer":"B","discussion":"Kebohongan mengikis hubungan sosial dan keadilan."},
+{"id":96,"topic":"akhlak","question":"Jihad terbesar adalah…","choices":["A. Berkelahi","B. Melawan hawa nafsu","C. Lari dari masalah","D. Mencari musuh"],"answer":"B","discussion":"Perang melawan nafsu diri sendiri (jihad al-akbar) adalah perjuangan spiritual utama."},
+{"id":97,"topic":"akhlak","question":"Etika menggunakan HP menurut Islam adalah…","choices":["A. Dipakai untuk hal-hal baik","B. Untuk menyebar hoaks","C. Untuk menghina","D. Untuk mencuri data"],"answer":"A","discussion":"Teknologi harus digunakan untuk kebaikan dan tidak melanggar etika."},
+{"id":98,"topic":"akhlak","question":"Menjaga rahasia orang termasuk…","choices":["A. Amanah","B. Fitnah","C. Ghibah","D. Hasad"],"answer":"A","discussion":"Menjaga rahasia adalah wujud dipercaya dan berakhlak baik."},
+{"id":99,"topic":"akhlak","question":"Dalam Islam, ilmu tanpa akhlak akan…","choices":["A. Menjadikan sombong","B. Tetap bermanfaat","C. Stabil","D. Tidak berpengaruh"],"answer":"A","discussion":"Ilmu tanpa etika dapat merusak jika digunakan untuk kesombongan atau kejahatan."},
+{"id":100,"topic":"akidah","question":"Tujuan utama manusia diciptakan adalah…","choices":["A. Menjadi kaya","B. Beribadah kepada Allah","C. Mengumpulkan dunia","D. Menghibur diri"],"answer":"B","discussion":"Surah Adz-Dzariyat ayat 56 menyatakan tujuan penciptaan manusia dan jin adalah beribadah kepada Allah."}
+].map(q => ({
+  ...q,
+  // Normalisasi topik untuk konsistensi filter
+  topic: q.topic.replace(/^aqidah$/i, 'akidah')
+               .replace(/^akhlaq$/i, 'akhlak')
+               .replace(/^sunnah$/i, 'ibadah')
+               .replace(/^mukjizat$/i, 'akidah')
+               .replace(/^rukun$/i, 'akidah')
+               .replace(/^asmaulhusna$/i, 'akidah')
+               .replace(/^aqal$/i, 'akidah')
+               .replace(/^adab$/i, 'akhlak')
+               .replace(/^ilmu$/i, 'akhlak')
+               .replace(/^fiqih$/i, 'ibadah')
+               .toLowerCase()
+}));
+
+// Validasi data
+const INVALID_QUESTIONS = questions.filter(q => 
+  !q.id || !q.topic || !q.question || !q.choices || q.choices.length < 2 || !q.answer || !q.discussion
+);
+if (INVALID_QUESTIONS.length > 0) {
+  console.error('Data soal tidak valid:', INVALID_QUESTIONS);
+  alert(`Error: Ada ${INVALID_QUESTIONS.length} soal dengan data tidak lengkap. Periksa console.`);
+}
+
+// ===== RENDERING & STATE MANAGEMENT =====
+const qContainer = document.getElementById('questions');
+const questionsStatus = document.getElementById('questionsStatus');
+const totalSoalEl = document.getElementById('totalSoal');
+let currentlyRenderedList = [];
+let activeFilter = null;
+
+function escapeHtml(s){ 
+  if (typeof s !== 'string') return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderList(list){
+  currentlyRenderedList = list.slice();
+  qContainer.innerHTML = '';
+  
+  // Update status
+  if (questionsStatus) {
+    questionsStatus.textContent = list.length === 0 ? 'Tidak ada soal yang ditemukan.' : `Menampilkan ${list.length} soal`;
+  }
+  
+  if (list.length === 0) return;
+
+  const fragment = document.createDocumentFragment();
+  list.forEach(item => {
+    const qEl = document.createElement('div');
+    qEl.className = 'q';
+    qEl.dataset.id = item.id;
+    
+    const choicesHtml = item.choices.map((ch, i) => {
+      const letter = String.fromCharCode(65 + i);
+      return `<label><input type="radio" name="q${item.id}" value="${letter}" aria-label="Jawaban ${letter} untuk soal ${item.id}"> ${escapeHtml(ch)}</label>`;
+    }).join('');
+    
+    qEl.innerHTML = `
+      <h3>${item.id}. ${escapeHtml(item.question)}</h3>
+      <div class="choices">${choicesHtml}</div>
+      <div id="feedback-${item.id}" class="feedback" aria-live="polite"></div>
+      <details id="detail-${item.id}" style="margin-top:8px">
+        <summary style="cursor:pointer;font-weight:600">Pembahasan</summary>
+        <div style="margin-top:8px;color:var(--muted)">${escapeHtml(item.discussion)}</div>
+      </details>
+    `;
+    fragment.appendChild(qEl);
+  });
+  
+  qContainer.appendChild(fragment);
+  updateTotalSoal();
+}
+
+// Event delegation untuk radio buttons
+qContainer.addEventListener('change', (e) => {
+  if (e.target.type !== 'radio') return;
+  
+  const name = e.target.name;
+  const id = parseInt(name.replace('q',''));
+  const chosenLetter = e.target.value.toUpperCase();
+  const qObj = questions.find(q => q.id === id);
+  
+  if (!qObj) {
+    console.error('Soal tidak ditemukan:', id);
+    return;
+  }
+  
+  const feedback = document.getElementById(`feedback-${id}`);
+  const detail = document.getElementById(`detail-${id}`);
+  
+  if (!feedback || !detail) return;
+  
+  // Show feedback
+  const isCorrect = chosenLetter === (qObj.answer || '').toUpperCase();
+  feedback.className = isCorrect ? 'feedback ok' : 'feedback err';
+  feedback.style.display = 'block';
+  feedback.innerHTML = isCorrect 
+    ? `✓ Benar — jawaban ${chosenLetter}. <div style="margin-top:6px;color:var(--muted)">${escapeHtml(qObj.discussion)}</div>`
+    : `✗ Salah — kamu memilih ${chosenLetter}. Jawaban yang benar: <strong>${qObj.answer}</strong>.<div style="margin-top:6px;color:var(--muted)">${escapeHtml(qObj.discussion)}</div>`;
+  
+  detail.open = true;
+});
+
+function updateTotalSoal() {
+  if (totalSoalEl) totalSoalEl.textContent = questions.length;
+}
+
+// ===== SEARCH =====
+const searchInput = document.getElementById('qSearch');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  clearActiveFilter();
+  
+  if (!q) {
+    renderList(questions);
+    updateScoreDisplay('Belum dihitung');
+    return;
+  }
+  
+  const filtered = questions.filter(item => 
+    String(item.id) === q ||
+    item.question.toLowerCase().includes(q) ||
+    item.topic.toLowerCase().includes(q) ||
+    item.discussion.toLowerCase().includes(q) ||
+    item.choices.some(ch => ch.toLowerCase().includes(q))
+  );
+  
+  renderList(filtered);
+  updateScoreDisplay('Belum dihitung');
+});
+
+// ===== TOPIC FILTERS =====
+function clearActiveFilter() {
+  document.querySelectorAll('.topic').forEach(el => el.classList.remove('active'));
+  activeFilter = null;
+}
+
+document.querySelectorAll('.topic').forEach(el => {
+  el.addEventListener('click', e => {
+    const filter = e.currentTarget.getAttribute('data-filter');
+    const isActive = e.currentTarget.classList.contains('active');
+    
+    // Toggle filter
+    if (isActive) {
+      clearActiveFilter();
+      renderList(questions);
+    } else {
+      clearActiveFilter();
+      e.currentTarget.classList.add('active');
+      activeFilter = filter;
+      
+      const filtered = questions.filter(q => q.topic === filter);
+      renderList(filtered);
+    }
+    
+    updateScoreDisplay('Belum dihitung');
+    searchInput.value = ''; // Clear search
+  });
+});
+
+// ===== Expand / Collapse =====
+document.getElementById('expandAll').addEventListener('click', () => {
+  document.querySelectorAll('details').forEach(d => d.open = true);
+});
+
+document.getElementById('collapseAll').addEventListener('click', () => {
+  document.querySelectorAll('details').forEach(d => d.open = false);
+});
+
+// ===== Reset All Answers =====
+document.getElementById('resetAll').addEventListener('click', () => {
+  if (!confirm('Yakin ingin menghapus semua jawaban?')) return;
+  
+  document.querySelectorAll('input[type=radio]').forEach(radio => radio.checked = false);
+  document.querySelectorAll('.feedback').forEach(fb => {
+    fb.style.display = 'none';
+    fb.innerHTML = '';
+  });
+  document.querySelectorAll('details').forEach(d => d.open = false);
+  updateScoreDisplay('Belum dihitung');
+});
+
+// ===== Score Calculation =====
+function computeScore() {
+  const visible = currentlyRenderedList;
+  if (!visible || visible.length === 0) return null;
+  
+  let total = visible.length;
+  let answered = 0;
+  let correct = 0;
+  
+  visible.forEach(q => {
+    const sel = document.querySelector(`input[name=q${q.id}]:checked`);
+    if (sel) {
+      answered++;
+      if (sel.value.toUpperCase() === (q.answer || '').toUpperCase()) {
+        correct++;
+      }
+    }
+  });
+  
+  return {
+    total,
+    answered,
+    correct,
+    percent: total ? Math.round((correct / total) * 100) : 0
+  };
+}
+
+function updateScoreDisplay(text) {
+  const el = document.getElementById('scoreDisplay');
+  if (el) el.textContent = text;
+}
+
+document.getElementById('scoreBtn').addEventListener('click', () => {
+  const res = computeScore();
+  if (!res) {
+    alert('Tidak ada soal yang tampil untuk dihitung.');
+    return;
+  }
+  
+  updateScoreDisplay(`Benar ${res.correct} / ${res.total} (Jawab ${res.answered}), ${res.percent}%`);
+  
+  // Highlight unanswered
+  currentlyRenderedList.forEach(q => {
+    const sel = document.querySelector(`input[name=q${q.id}]:checked`);
+    if (!sel) {
+      const qEl = document.querySelector(`[data-id="${q.id}"]`);
+      if (qEl) qEl.style.border = '2px dashed #f59e0b';
+    }
+  });
+  
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
+
+// ===== Print =====
+document.getElementById('printBtn').addEventListener('click', () => {
+  window.print();
+});
+
+// ===== INITIAL RENDER =====
+renderList(questions);
+</script>
+</body>
+</html>
